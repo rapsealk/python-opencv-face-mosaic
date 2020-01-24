@@ -1,42 +1,35 @@
 #!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
-import cv2
+from flask import Flask, request, jsonify
+from werkzeug.utils import secure_filename
 import time
+from multiprocessing import Process
 
-FILENAME = str(int(time.time())) + '.avi'
-WIDTH = 1080
-HEIGHT = 720
+from utils import ImageProcess
 
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, WIDTH)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+app = Flask(__name__)
 
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-"""
-codec = cv2.VideoWriter_fourcc(*'XVID') # MP4V 0x7634706d
-out = cv2.VideoWriter(FILENAME, codec, 20.0, (WIDTH, HEIGHT))
-"""
+@app.route('/api/frame', methods=['POST'])
+def process_frame():
+    """
+    입력된 얼굴 사진을 RESTful API 방식으로 전달하면 서버에서 해당 이미지를 분석해서
+    결과를 JSON 형태로 리턴해주는 API입니다.
+    """
+    # if request.method == 'POST'
+    frame = request.files['frame']
+    filename = secure_filename(f'{str(int(time.time()))}.jpg')
+    frame.save(filename)
 
-while cap.isOpened():
-    ret, frame = cap.read()
-    frame = cv2.flip(frame, 1)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
-    for x, y, w, h in faces:
-        print(f'face(x={x}, y={y}, w={w}, h={h})')
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        face = frame[y:y+h, x:x+w]
-        face = cv2.resize(face, (w // 30, h // 30))
-        face = cv2.resize(face, (w, h), interpolation=cv2.INTER_AREA)
-        frame[y:y+h, x:x+w] = face
+    ImageProcess.detect_face(filename)
 
-    cv2.imshow('frame', frame)
-    # out.write(frame)
+    return jsonify({'code': 200})
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
 
-cap.release()
-# out.release()
-cv2.destroyAllWindows()
+@app.route('/api/face_recognition', methods=['POST'])
+def face_recognition():
+    return jsonify({'code': 200})
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', debug=True)

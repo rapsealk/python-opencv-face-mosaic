@@ -15,3 +15,8 @@
 | Language | Library |
 | -------- | ------- |
 | Python   | [unittest](https://docs.python.org/3/library/unittest.html) |
+
+## Examples
+| Original | Processed |
+| -------- | --------- |
+| ![Original](https://github.com/rapsealk/python-opencv-face-mosaic/blob/master/images/original.jpg) | ![Processed](https://github.com/rapsealk/python-opencv-face-mosaic/blob/master/images/processed.jpg) |
